@@ -1361,6 +1361,10 @@ label {
     width: 100%;
   }
 
+  #barcode-reader {
+    aspect-ratio: 4 / 3;
+  }
+
   .list-pagination,
   .protocol-pagination {
     align-items: stretch;

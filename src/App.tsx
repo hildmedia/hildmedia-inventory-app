@@ -130,6 +130,13 @@ const barcodeFormats = [
   Html5QrcodeSupportedFormats.CODE_128,
 ];
 
+const scannerBox = (viewfinderWidth: number, viewfinderHeight: number) => {
+  const edgeSize = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.78);
+  const size = Math.max(160, Math.min(280, edgeSize));
+
+  return { width: size, height: size };
+};
+
 const currencyFormatter = new Intl.NumberFormat('de-DE', {
   style: 'currency',
   currency: 'EUR',
@@ -263,7 +270,7 @@ function App() {
     const scanner = new Html5Qrcode('barcode-reader', {
       verbose: false,
       formatsToSupport: barcodeFormats,
-      useBarCodeDetectorIfSupported: true,
+      useBarCodeDetectorIfSupported: false,
     });
 
     scannerRef.current = scanner;
@@ -273,8 +280,8 @@ function App() {
         { facingMode: 'environment' },
         {
           fps: 12,
-          qrbox: { width: 280, height: 170 },
-          aspectRatio: 1.777,
+          qrbox: scannerBox,
+          aspectRatio: 1.333,
           disableFlip: false,
         },
         (decodedText) => {
