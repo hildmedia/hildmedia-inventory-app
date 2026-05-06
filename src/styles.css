@@ -1226,12 +1226,113 @@ label {
 }
 
 @media (max-width: 560px) {
-  .app-shell {
-    width: min(100% - 18px, 1450px);
-    padding-top: 10px;
+  .auth-shell {
+    padding: 14px;
   }
 
-  .topbar,
+  .auth-card {
+    border-radius: 22px;
+    gap: 18px;
+    padding: 26px 22px;
+  }
+
+  .auth-logo {
+    width: min(190px, 70%);
+  }
+
+  .app-shell {
+    width: min(100% - 14px, 1450px);
+    padding: 8px 0 36px;
+  }
+
+  .topbar {
+    border-radius: 18px;
+    gap: 10px;
+    grid-template-columns: auto 1fr;
+    margin-bottom: 12px;
+    padding: 12px;
+  }
+
+  .brand-mark {
+    height: 36px;
+  }
+
+  .brand-mark img {
+    height: 30px;
+  }
+
+  .main-nav {
+    gap: 4px;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .main-nav button {
+    border-radius: 10px;
+    font-size: 0.82rem;
+    min-height: 34px;
+    padding: 0 8px;
+  }
+
+  .top-actions,
+  .top-actions.without-add {
+    grid-column: 1 / -1;
+  }
+
+  .top-actions {
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) 44px 44px;
+  }
+
+  .top-actions.without-add {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .top-search {
+    border-radius: 13px;
+    min-height: 44px;
+    padding: 4px 5px 4px 12px;
+  }
+
+  .top-search input {
+    font-size: 0.9rem;
+    min-height: 36px;
+  }
+
+  .top-search button {
+    border-radius: 11px;
+    font-size: 0.86rem;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 14px;
+  }
+
+  .icon-button,
+  .profile-button {
+    height: 44px;
+    min-height: 44px;
+    width: 44px;
+  }
+
+  .icon-button svg {
+    height: 25px;
+    width: 25px;
+  }
+
+  .profile-button svg {
+    height: 21px;
+    width: 21px;
+  }
+
+  .profile-menu {
+    min-width: min(250px, calc(100vw - 30px));
+  }
+
+  .scanner-backdrop,
+  .modal-backdrop {
+    padding: 10px;
+  }
+
   .metric-card,
   .status-overview,
   .scanner-modal,
@@ -1244,15 +1345,20 @@ label {
     padding: 18px;
   }
 
-  .top-search,
   .inline-control,
-  .top-actions,
-  .top-actions.without-add,
   .date-row,
   .protocol-entry,
   .list-pagination,
   .protocol-pagination {
     grid-template-columns: 1fr;
+  }
+
+  .scanner-modal,
+  .edit-modal,
+  .confirm-modal,
+  .workflow-modal {
+    max-height: calc(100vh - 20px);
+    width: 100%;
   }
 
   .list-pagination,
@@ -1272,11 +1378,138 @@ label {
     gap: 8px;
   }
 
+  .protocol-tag {
+    justify-self: start;
+    width: auto;
+  }
+
+  .pagination-buttons {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .pagination-buttons button {
+    flex: 1;
+    padding: 0 10px;
+  }
+
   .top-search span {
     display: none;
   }
 
+  .dashboard-grid {
+    gap: 10px;
+  }
+
   .metric-card {
+    gap: 14px;
     grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .metric-icon {
+    border-radius: 14px;
+    height: 46px;
+    width: 46px;
+  }
+
+  .metric-card strong {
+    font-size: 2.2rem;
+  }
+
+  .status-overview {
+    padding: 18px;
+  }
+
+  .status-line {
+    padding: 9px 0;
+  }
+
+  .panel-header {
+    gap: 12px;
+    grid-template-columns: 1fr;
+  }
+
+  .panel-header > span,
+  .panel-actions {
+    justify-self: start;
+  }
+
+  .panel-actions {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    width: 100%;
+  }
+
+  .panel-actions > span {
+    grid-column: 1 / -1;
+  }
+
+  .panel-filters {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .responsive-table {
+    border: 0;
+    overflow: visible;
+  }
+
+  .responsive-table table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table tr {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(21, 25, 31, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(21, 25, 31, 0.06);
+    margin-bottom: 10px;
+    padding: 12px;
+  }
+
+  .responsive-table td {
+    align-items: start;
+    background: transparent;
+    border-bottom: 0;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 112px 1fr;
+    padding: 7px 0;
+  }
+
+  .responsive-table td::before {
+    color: #697482;
+    content: attr(data-label);
+    font-size: 0.78rem;
+    font-weight: 750;
+  }
+
+  .responsive-table .name-cell {
+    font-size: 1.02rem;
+  }
+
+  .responsive-table .select-cell {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .responsive-table .row-actions {
+    flex-wrap: wrap;
+  }
+
+  .sort-button {
+    min-height: 28px;
   }
 }

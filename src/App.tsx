@@ -1706,7 +1706,7 @@ function App() {
         ) : visibleItems.length === 0 ? (
           <p className="empty-state">Keine Equipment-Einträge gefunden.</p>
         ) : (
-          <div className="table-wrap">
+          <div className="table-wrap responsive-table">
             <table>
               <thead>
                 <tr>
@@ -1778,7 +1778,7 @@ function App() {
               <tbody>
                 {visibleInventoryItems.map((item) => (
                   <tr key={item.id}>
-                    <td className="select-cell">
+                    <td className="select-cell" data-label="Auswahl">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(item.id)}
@@ -1786,11 +1786,11 @@ function App() {
                         aria-label={`${item.name} auswählen`}
                       />
                     </td>
-                    <td className="name-cell">{item.name}</td>
-                    <td>{item.category}</td>
-                    <td>{item.brand || '-'}</td>
-                    <td>{item.ean_code || '-'}</td>
-                    <td>
+                    <td className="name-cell" data-label="Name">{item.name}</td>
+                    <td data-label="Kategorie">{item.category}</td>
+                    <td data-label="Marke">{item.brand || '-'}</td>
+                    <td data-label="EAN">{item.ean_code || '-'}</td>
+                    <td data-label="Status">
                       <span className={`status ${statusClassName(item.status)}`}>
                         {item.status}
                       </span>
@@ -1803,13 +1803,13 @@ function App() {
                         </span>
                       )}
                     </td>
-                    <td>{getCurrentLocation(item)}</td>
-                    <td>
+                    <td data-label="Standort / Besitzer">{getCurrentLocation(item)}</td>
+                    <td data-label="Kaufpreis">
                       {item.purchase_price
                         ? currencyFormatter.format(item.purchase_price)
                         : '-'}
                     </td>
-                    <td>
+                    <td data-label="Aktionen">
                       <div className="row-actions">
                         <button
                           className="table-icon-button"
@@ -2497,7 +2497,7 @@ function App() {
           ) : customerRows.length === 0 ? (
             <p className="empty-state">Keine Kunden gefunden.</p>
           ) : (
-            <div className="table-wrap">
+            <div className="table-wrap responsive-table">
               <table>
                 <thead>
                   <tr>
@@ -2549,13 +2549,13 @@ function App() {
                 <tbody>
                   {customerRows.map((row) => (
                     <tr key={row.customer.id}>
-                      <td className="name-cell">{row.customer.name}</td>
-                      <td>{row.customer.customer_type}</td>
-                      <td>{row.customer.contact_person || '-'}</td>
-                      <td>{row.activeLoanCount}</td>
-                      <td>{currencyFormatter.format(row.activeLoanValue)}</td>
-                      <td>{formatDate(row.latestLoan)}</td>
-                      <td>
+                      <td className="name-cell" data-label="Name / Firma">{row.customer.name}</td>
+                      <td data-label="Typ">{row.customer.customer_type}</td>
+                      <td data-label="Ansprechperson">{row.customer.contact_person || '-'}</td>
+                      <td data-label="Aktive Leihen">{row.activeLoanCount}</td>
+                      <td data-label="Ausleihevolumen">{currencyFormatter.format(row.activeLoanValue)}</td>
+                      <td data-label="Letzte Ausleihe">{formatDate(row.latestLoan)}</td>
+                      <td data-label="Aktionen">
                         <div className="row-actions">
                           <button
                             className="table-icon-button"
