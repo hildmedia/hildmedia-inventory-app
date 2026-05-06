@@ -1459,7 +1459,7 @@ function App() {
     return (
       <main className="auth-shell">
         <section className="auth-card">
-          <img className="auth-logo" src="/brand/hildmedia-logo-black-gray.svg" alt="Hildmedia" />
+          <img className="auth-logo" src="/brand/hildmedia-logo-black-gray.png" alt="Hildmedia" />
           <p>Login wird geprüft...</p>
         </section>
       </main>
@@ -1470,7 +1470,7 @@ function App() {
     return (
       <main className="auth-shell">
         <section className="auth-card">
-          <img className="auth-logo" src="/brand/hildmedia-logo-black-gray.svg" alt="Hildmedia" />
+          <img className="auth-logo" src="/brand/hildmedia-logo-black-gray.png" alt="Hildmedia" />
           <div className="auth-intro">
             <p>Bitte einloggen, um auf die Inventarverwaltung zugreifen zu können.</p>
           </div>

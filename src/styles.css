@@ -98,7 +98,8 @@ textarea {
 .auth-shell {
   align-items: center;
   background:
-    radial-gradient(circle at top left, rgba(21, 25, 31, 0.08), transparent 36%),
+    radial-gradient(circle at top left, rgba(21, 25, 31, 0.07), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(21, 25, 31, 0.05), transparent 30%),
     #eef1f5;
   display: flex;
   justify-content: center;
@@ -110,19 +111,19 @@ textarea {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 250, 0.9));
   border: 1px solid rgba(21, 25, 31, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 24px 70px rgba(21, 25, 31, 0.14);
+  border-radius: 28px;
+  box-shadow: 0 28px 80px rgba(21, 25, 31, 0.13);
   display: grid;
-  gap: 22px;
-  padding: 32px;
-  width: min(440px, 100%);
+  gap: 24px;
+  padding: 38px;
+  width: min(460px, 100%);
 }
 
 .auth-logo {
   display: block;
   height: auto;
   justify-self: center;
-  width: 178px;
+  width: min(230px, 72%);
 }
 
 .auth-intro {
@@ -133,6 +134,7 @@ textarea {
 
 .auth-card p {
   color: #697482;
+  line-height: 1.5;
   margin: 0;
 }
 
