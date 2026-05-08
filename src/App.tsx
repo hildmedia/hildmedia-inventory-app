@@ -229,7 +229,26 @@ function App() {
   const [protocolPage, setProtocolPage] = useState(1);
   const [protocolPageSize, setProtocolPageSize] = useState(10);
   const [protocolFilter, setProtocolFilter] = useState<ProtocolFilter>('all');
+  const [inventoryFiltersOpen, setInventoryFiltersOpen] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const hasOpenOverlay =
+    Boolean(scanTarget) ||
+    createFormOpen ||
+    Boolean(editItem) ||
+    Boolean(infoItem) ||
+    checkoutOpen ||
+    checkinOpen ||
+    extendOpen ||
+    deleteConfirmOpen ||
+    Boolean(warningMessage) ||
+    customerPromptOpen ||
+    customerCreateOpen ||
+    Boolean(customerInfo) ||
+    Boolean(customerEdit) ||
+    Boolean(customerDeleteConfirm) ||
+    Boolean(customerLoans) ||
+    Boolean(copyItem) ||
+    inventoryFiltersOpen;
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -260,6 +279,31 @@ function App() {
     void loadCustomers();
     void loadCheckoutLogs();
   }, [session]);
+
+  useEffect(() => {
+    if (!hasOpenOverlay) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousWidth = document.body.style.width;
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.width = previousWidth;
+      document.body.style.overflow = previousOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [hasOpenOverlay]);
 
   useEffect(() => {
     if (!scanTarget) {
@@ -1175,6 +1219,19 @@ function App() {
     );
   }
 
+  function handleInventoryRowClick(
+    event: React.MouseEvent<HTMLTableRowElement>,
+    id: number,
+  ) {
+    const target = event.target as HTMLElement;
+
+    if (target.closest('button, input, select, textarea, a')) {
+      return;
+    }
+
+    toggleSelected(id);
+  }
+
   function toggleAllVisible(checked: boolean) {
     const visiblePageIds = visibleInventoryItems.map((item) => item.id);
 
@@ -1423,6 +1480,17 @@ function App() {
       return [];
     }
 
+    const exactCustomer = customers.find((customer) => {
+      return (
+        getCustomerDisplayName(customer).toLowerCase() === normalizedBorrower ||
+        getCustomerOptionLabel(customer).toLowerCase() === normalizedBorrower
+      );
+    });
+
+    if (exactCustomer) {
+      return [];
+    }
+
     const seenLabels = new Set<string>();
 
     return customers.filter((customer) => {
@@ -1600,7 +1668,13 @@ function App() {
         </nav>
 
         <div
-          className={`top-actions ${activePage === 'protocol' ? 'without-add' : ''}`}
+          className={[
+            'top-actions',
+            activePage === 'dashboard' ? 'with-scan' : '',
+            activePage === 'protocol' ? 'without-add' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
           <div className={topSearchClassName}>
             <span aria-hidden="true">⌕</span>
@@ -1609,12 +1683,18 @@ function App() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder={searchPlaceholder}
             />
-            {activePage === 'dashboard' && (
-              <button type="button" onClick={() => setScanTarget('search')}>
-                Scan
-              </button>
-            )}
           </div>
+
+          {activePage === 'dashboard' && (
+            <button
+              className="icon-button scan-action-button"
+              type="button"
+              onClick={() => setScanTarget('search')}
+              aria-label="Barcode oder QR-Code scannen"
+            >
+              <ScanFrameIcon />
+            </button>
+          )}
 
           {activePage !== 'protocol' && (
             <button className="icon-button" type="button" onClick={scrollToForm}>
@@ -1629,11 +1709,43 @@ function App() {
               onClick={() => setProfileMenuOpen((current) => !current)}
               aria-label="Profilmenü öffnen"
             >
-              <ProfileIcon />
+              <MenuIcon />
             </button>
 
             {profileMenuOpen && (
               <div className="profile-menu">
+                <div className="mobile-menu-nav">
+                  <button
+                    className={activePage === 'dashboard' ? 'active' : ''}
+                    type="button"
+                    onClick={() => {
+                      setActivePage('dashboard');
+                      setProfileMenuOpen(false);
+                    }}
+                  >
+                    Inventar
+                  </button>
+                  <button
+                    className={activePage === 'customers' ? 'active' : ''}
+                    type="button"
+                    onClick={() => {
+                      setActivePage('customers');
+                      setProfileMenuOpen(false);
+                    }}
+                  >
+                    Kunden
+                  </button>
+                  <button
+                    className={activePage === 'protocol' ? 'active' : ''}
+                    type="button"
+                    onClick={() => {
+                      setActivePage('protocol');
+                      setProfileMenuOpen(false);
+                    }}
+                  >
+                    Protokoll
+                  </button>
+                </div>
                 <span>{session.user.email}</span>
                 <button type="button" onClick={() => void handleLogout()}>
                   Logout
@@ -1691,8 +1803,21 @@ function App() {
 
       <section className="inventory-panel">
         <div className="panel-header">
-          <h1>Inventar</h1>
-          <div className="panel-filters">
+          <div className="panel-title-row">
+            <h1>Inventar</h1>
+            <button
+              className="filter-toggle-button"
+              type="button"
+              onClick={() => setInventoryFiltersOpen(true)}
+              aria-expanded={inventoryFiltersOpen}
+            >
+              <FilterIcon />
+              <span>Filter</span>
+            </button>
+          </div>
+          <div
+            className={`panel-filters ${inventoryFiltersOpen ? 'is-open' : ''}`}
+          >
             <select
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
@@ -1717,34 +1842,44 @@ function App() {
               ))}
             </select>
           </div>
-          <div className="panel-actions">
-            {canCheckout && (
-              <button
-                className="workflow-button"
-                type="button"
-                onClick={() => setCheckoutOpen(true)}
-              >
-                Check-Out
-              </button>
-            )}
-            {canCheckin && (
-              <button
-                className="workflow-button"
-                type="button"
-                onClick={handleCheckinClick}
-              >
-                Check-In
-              </button>
-            )}
-            {canExtend && (
-              <button
-                className="workflow-button"
-                type="button"
-                onClick={handleExtendClick}
-              >
-                Verlängern
-              </button>
-            )}
+          <div className={`panel-actions ${selectedIds.length > 0 ? 'has-selection' : ''}`}>
+            <button
+              className="clear-selection-button"
+              type="button"
+              onClick={() => setSelectedIds([])}
+              aria-label="Auswahl aufheben"
+            >
+              <ClearSelectionIcon />
+            </button>
+            <div className="selection-workflows">
+              {canCheckout && (
+                <button
+                  className="workflow-button"
+                  type="button"
+                  onClick={() => setCheckoutOpen(true)}
+                >
+                  Check-Out
+                </button>
+              )}
+              {canCheckin && (
+                <button
+                  className="workflow-button"
+                  type="button"
+                  onClick={handleCheckinClick}
+                >
+                  Check-In
+                </button>
+              )}
+              {canExtend && (
+                <button
+                  className="workflow-button"
+                  type="button"
+                  onClick={handleExtendClick}
+                >
+                  Verlängern
+                </button>
+              )}
+            </div>
             <button
               className={`danger-icon-button ${selectedIds.length === 0 ? 'is-hidden' : ''}`}
               type="button"
@@ -1754,18 +1889,67 @@ function App() {
             >
               <TrashIcon />
             </button>
-            <span>
+            <span className="inventory-count">
               Zeige {inventoryStart} bis {inventoryEnd} von {visibleItems.length} Artikeln
             </span>
+            <span className="selection-count">{selectedIds.length} ausgewählt</span>
           </div>
         </div>
+
+        {inventoryFiltersOpen && (
+          <div className="modal-backdrop mobile-filter-backdrop" role="dialog" aria-modal="true">
+            <section className="confirm-modal mobile-filter-modal">
+              <div className="form-header">
+                <h2>Filter</h2>
+                <button type="button" onClick={() => setInventoryFiltersOpen(false)}>
+                  Schließen
+                </button>
+              </div>
+              <label>
+                Kategorie
+                <select
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                >
+                  <option value="all">Alle Kategorien</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Status
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                >
+                  <option value="all">Alle Status</option>
+                  {statuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                className="primary-button full-width-action"
+                type="button"
+                onClick={() => setInventoryFiltersOpen(false)}
+              >
+                Filter anwenden
+              </button>
+            </section>
+          </div>
+        )}
 
         {isLoading ? (
           <p className="empty-state">Inventar wird geladen...</p>
         ) : visibleItems.length === 0 ? (
           <p className="empty-state">Keine Equipment-Einträge gefunden.</p>
         ) : (
-          <div className="table-wrap responsive-table">
+          <div className="table-wrap responsive-table inventory-table">
             <table>
               <thead>
                 <tr>
@@ -1836,7 +2020,13 @@ function App() {
               </thead>
               <tbody>
                 {visibleInventoryItems.map((item) => (
-                  <tr key={item.id}>
+                  <tr
+                    className={`inventory-row ${
+                      selectedIds.includes(item.id) ? 'is-selected' : ''
+                    }`}
+                    key={item.id}
+                    onClick={(event) => handleInventoryRowClick(event, item.id)}
+                  >
                     <td className="select-cell" data-label="Auswahl">
                       <input
                         type="checkbox"
@@ -1862,14 +2052,39 @@ function App() {
                         </span>
                       )}
                     </td>
-                    <td data-label="Standort / Besitzer">{getCurrentLocation(item)}</td>
+                    <td
+                      data-label="Standort / Besitzer"
+                      data-status={statusClassName(item.status)}
+                    >
+                      <span className="mobile-location-prefix">an </span>
+                      {getCurrentLocation(item)}
+                    </td>
                     <td data-label="Kaufpreis">
                       {item.purchase_price
                         ? currencyFormatter.format(item.purchase_price)
                         : '-'}
                     </td>
                     <td data-label="Aktionen">
-                      <div className="row-actions">
+                      <div
+                        className={`row-actions ${
+                          item.status === 'verliehen' || item.status === 'in Reparatur'
+                            ? 'has-info'
+                            : ''
+                        }`}
+                      >
+                        {(item.status === 'verliehen' ||
+                          item.status === 'in Reparatur') ? (
+                          <button
+                            className="table-icon-button"
+                            type="button"
+                            onClick={() => void openInfoModal(item)}
+                            aria-label={`${item.name} Informationen anzeigen`}
+                          >
+                            <InfoIcon />
+                          </button>
+                        ) : (
+                          <span className="table-icon-spacer" aria-hidden="true" />
+                        )}
                         <button
                           className="table-icon-button"
                           type="button"
@@ -1886,17 +2101,6 @@ function App() {
                         >
                           <CopyIcon />
                         </button>
-                        {(item.status === 'verliehen' ||
-                          item.status === 'in Reparatur') && (
-                          <button
-                            className="table-icon-button"
-                            type="button"
-                            onClick={() => void openInfoModal(item)}
-                            aria-label={`${item.name} Informationen anzeigen`}
-                          >
-                            <InfoIcon />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -1978,15 +2182,15 @@ function App() {
             <div className="scanner-header">
               <h2>
                 {scanTarget === 'search'
-                  ? 'Barcode für Suche scannen'
-                  : 'Barcode für Artikel scannen'}
+                  ? 'Barcode oder QR-Code für Suche scannen'
+                  : 'Barcode oder QR-Code für Artikel scannen'}
               </h2>
               <button type="button" onClick={() => setScanTarget(null)}>
                 Schließen
               </button>
             </div>
             <p className="scanner-hint">
-              Halte den EAN-Code gut beleuchtet und möglichst gerade in den Rahmen.
+              Halte den EAN- oder QR-Code gut beleuchtet und möglichst gerade in den Rahmen.
             </p>
             <div className="scanner-frame">
               <div className="scanner-placeholder">Kamera wird gestartet...</div>
@@ -2730,12 +2934,6 @@ function App() {
               <div className="protocol-list">
                 {visibleProtocolRows.map((row) => (
                   <article className="protocol-entry" key={row.id}>
-                    <div>
-                      <span className={`protocol-tag ${protocolClassName(row.kind)}`}>
-                        {row.kind}
-                      </span>
-                    </div>
-
                     <div className="protocol-main">
                       <div className="protocol-title-row">
                         <div className="protocol-title-group">
@@ -2767,7 +2965,12 @@ function App() {
                             )}
                           </div>
                         </div>
-                        <time>{formatDateTime(row.date)}</time>
+                        <div className="protocol-entry-aside">
+                          <span className={`protocol-tag ${protocolClassName(row.kind)}`}>
+                            {row.kind}
+                          </span>
+                          <time>{formatDateTime(row.date)}</time>
+                        </div>
                       </div>
 
                       {row.notes && (
@@ -2834,7 +3037,7 @@ function StatusLine({
   count: number;
 }) {
   return (
-    <div className="status-line">
+    <div className={`status-line ${statusClassName(status)}`}>
       <span className={`status-dot ${statusClassName(status)}`} />
       <span>{status}</span>
       <strong>{count}</strong>
@@ -2940,23 +3143,28 @@ function EquipmentForm({
       </label>
 
       <label>
-        EAN Code
+        EAN-/QR-Code
         {onScanEan ? (
           <div className="inline-control">
             <input
               value={data.ean_code ?? ''}
               onChange={(event) => onChange('ean_code', event.target.value)}
-              placeholder="EAN"
+              placeholder="EAN oder QR-Code"
             />
-            <button type="button" onClick={onScanEan}>
-              Scan
+            <button
+              className="scan-inline-button"
+              type="button"
+              onClick={onScanEan}
+              aria-label="Barcode oder QR-Code scannen"
+            >
+              <ScanFrameIcon />
             </button>
           </div>
         ) : (
           <input
             value={data.ean_code ?? ''}
             onChange={(event) => onChange('ean_code', event.target.value)}
-            placeholder="EAN"
+            placeholder="EAN oder QR-Code"
           />
         )}
       </label>
@@ -3186,6 +3394,25 @@ function InfoIcon() {
   );
 }
 
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5h16" />
+      <path d="M7 12h10" />
+      <path d="M10 19h4" />
+    </svg>
+  );
+}
+
+function ClearSelectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12" />
+      <path d="M18 6L6 18" />
+    </svg>
+  );
+}
+
 function LoansIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -3208,11 +3435,24 @@ function PlusIcon() {
   );
 }
 
-function ProfileIcon() {
+function ScanFrameIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
-      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+      <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+      <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+      <path d="M21 16v3a2 2 0 0 1-2 2h-3" />
+      <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+      <path d="M7 12h10" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
     </svg>
   );
 }
