@@ -2489,7 +2489,7 @@ function App() {
             <CustomerForm
               data={customerEditFormData}
               isSaving={isUpdating}
-              submitLabel={isUpdating ? 'Speichert...' : 'Kunde speichern'}
+              submitLabel={isUpdating ? 'Speichert...' : 'Änderungen speichern'}
               onSubmit={handleUpdateCustomer}
               onChange={setCustomerEditFormData}
               error={error}

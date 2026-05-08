@@ -948,8 +948,17 @@ tr:last-child td {
 }
 
 .customer-delete-button {
+  background: #f6e8e8;
+  border: 1px solid rgba(157, 28, 28, 0.22);
+  color: #8f1d1d;
   margin-top: 12px;
   width: 100%;
+}
+
+.customer-delete-button:hover {
+  background: #efd7d7;
+  box-shadow: 0 10px 22px rgba(157, 28, 28, 0.12);
+  color: #781717;
 }
 
 .danger-icon-button:hover,
