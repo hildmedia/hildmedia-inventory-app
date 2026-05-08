@@ -947,6 +947,11 @@ tr:last-child td {
   background: #9d1c1c;
 }
 
+.customer-delete-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
 .danger-icon-button:hover,
 .danger-button:hover {
   background: #7d1515;

@@ -191,6 +191,9 @@ function App() {
   const [customerEdit, setCustomerEdit] = useState<Customer | null>(null);
   const [customerEditFormData, setCustomerEditFormData] =
     useState<CustomerFormData>(emptyCustomerForm);
+  const [customerDeleteConfirm, setCustomerDeleteConfirm] = useState<Customer | null>(
+    null,
+  );
   const [customerLoans, setCustomerLoans] = useState<Customer | null>(null);
   const [copyItem, setCopyItem] = useState<EquipmentItem | null>(null);
   const [copyFormData, setCopyFormData] = useState<EquipmentFormData>(emptyForm);
@@ -832,6 +835,41 @@ function App() {
     setIsUpdating(false);
   }
 
+  async function handleDeleteCustomer() {
+    if (!customerDeleteConfirm) {
+      return;
+    }
+
+    setError('');
+    setIsDeleting(true);
+
+    const { error: deleteError } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', customerDeleteConfirm.id)
+      .eq('workspace_id', DEFAULT_WORKSPACE_ID);
+
+    if (deleteError) {
+      setError(deleteError.message);
+    } else {
+      setCustomers((current) =>
+        current.filter((customer) => customer.id !== customerDeleteConfirm.id),
+      );
+      setCustomerEdit(null);
+      setCustomerInfo((current) =>
+        current?.id === customerDeleteConfirm.id ? null : current,
+      );
+      setCustomerLoans((current) =>
+        current?.id === customerDeleteConfirm.id ? null : current,
+      );
+      setCustomerDeleteConfirm(null);
+      setCustomerEditFormData(emptyCustomerForm);
+      setSuccess('Kunde wurde gelöscht.');
+    }
+
+    setIsDeleting(false);
+  }
+
   function openCustomerEdit(customer: Customer) {
     setCustomerEdit(customer);
     setCustomerEditFormData(customerToFormData(customer));
@@ -1363,6 +1401,20 @@ function App() {
         item: items.find((equipment) => equipment.id === log.equipment_id),
       }));
   }, [checkoutLogs, customerLoans, items]);
+
+  const customerDeleteLoanRows = useMemo(() => {
+    if (!customerDeleteConfirm) {
+      return [];
+    }
+
+    return checkoutLogs.filter(
+      (log) =>
+        log.customer_id === customerDeleteConfirm.id &&
+        log.action_type === 'Verleih' &&
+        !log.checked_in_at &&
+        isLatestActiveLog(log, checkoutLogs),
+    );
+  }, [checkoutLogs, customerDeleteConfirm]);
 
   const customerSuggestions = useMemo(() => {
     const normalizedBorrower = checkoutFormData.borrower.trim().toLowerCase();
@@ -2423,7 +2475,13 @@ function App() {
                 <h2>Kunde bearbeiten</h2>
                 <p className="modal-subline">{getCustomerDisplayName(customerEdit)}</p>
               </div>
-              <button type="button" onClick={() => setCustomerEdit(null)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomerEdit(null);
+                  setCustomerDeleteConfirm(null);
+                }}
+              >
                 Schließen
               </button>
             </div>
@@ -2436,6 +2494,47 @@ function App() {
               onChange={setCustomerEditFormData}
               error={error}
             />
+            <button
+              className="danger-button customer-delete-button"
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setCustomerDeleteConfirm(customerEdit)}
+            >
+              Kunde löschen
+            </button>
+          </section>
+        </div>
+      )}
+
+      {customerDeleteConfirm && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <section className="confirm-modal">
+            <h2>Kunde löschen?</h2>
+            <p>
+              Du löschst "{getCustomerDisplayName(customerDeleteConfirm)}" aus den
+              Kundendaten. Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+            {customerDeleteLoanRows.length > 0 && (
+              <p>
+                Hinweis: Dieser Kunde hat aktuell {customerDeleteLoanRows.length}{' '}
+                {customerDeleteLoanRows.length === 1 ? 'aktive Leihe' : 'aktive Leihen'}.
+                Artikel und Protokolle bleiben erhalten, die direkte Kundenverknüpfung
+                wird aber entfernt.
+              </p>
+            )}
+            <div className="confirm-actions">
+              <button type="button" onClick={() => setCustomerDeleteConfirm(null)}>
+                Abbrechen
+              </button>
+              <button
+                className="danger-button"
+                type="button"
+                disabled={isDeleting}
+                onClick={() => void handleDeleteCustomer()}
+              >
+                {isDeleting ? 'Löscht...' : 'Kunde löschen'}
+              </button>
+            </div>
           </section>
         </div>
       )}
