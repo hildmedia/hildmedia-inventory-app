@@ -34,6 +34,7 @@ export type EquipmentItem = {
   category: Category;
   purchase_date: string | null;
   purchase_price: number | null;
+  photo_url?: string | null;
   status: EquipmentStatus;
   borrower: string | null;
   borrowed_at: string | null;
