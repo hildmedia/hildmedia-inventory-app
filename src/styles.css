@@ -53,6 +53,7 @@ button:disabled {
 input,
 select,
 textarea {
+  min-width: 0;
   width: 100%;
   border: 1px solid #cfd6df;
   border-radius: 14px;
@@ -224,6 +225,10 @@ textarea {
   width: 100%;
 }
 
+.search-clear-button {
+  display: none;
+}
+
 .top-search.no-scan {
   grid-template-columns: auto 1fr;
   padding-right: 16px;
@@ -378,6 +383,16 @@ textarea {
   width: 23px;
 }
 
+.desktop-profile-icon,
+.mobile-menu-icon {
+  align-items: center;
+  display: flex;
+}
+
+.mobile-menu-icon {
+  display: none;
+}
+
 .message {
   border-radius: 16px;
   font-weight: 750;
@@ -409,8 +424,7 @@ textarea {
 .confirm-modal,
 .inventory-panel,
 .form-section {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(244, 247, 250, 0.88));
+  background: #fff;
   border: 1px solid rgba(21, 25, 31, 0.1);
   border-radius: 22px;
   box-shadow: 0 18px 45px rgba(21, 25, 31, 0.08);
@@ -628,7 +642,7 @@ p {
 
 #barcode-reader {
   align-items: center;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
   background: #000;
   border-radius: 12px;
   display: flex;
@@ -739,12 +753,13 @@ p {
 .panel-actions {
   align-items: center;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-self: end;
 }
 
 .selection-count,
-.clear-selection-button {
+.clear-selection-button,
+.show-selected-button {
   display: none;
 }
 
@@ -752,9 +767,17 @@ p {
   display: none;
 }
 
+.mobile-location-text {
+  display: none;
+}
+
 .workflow-button {
   background: #000;
   min-height: 42px;
+}
+
+.workflow-button + .workflow-button {
+  margin-left: 12px;
 }
 
 .panel-header h1 {
@@ -1094,6 +1117,11 @@ tr:last-child td {
   margin-top: 18px;
 }
 
+.equipment-form label,
+.workflow-form label {
+  min-width: 0;
+}
+
 .customer-form {
   display: grid;
   gap: 16px;
@@ -1270,6 +1298,39 @@ label {
   margin: 8px 0 0;
 }
 
+.selected-summary-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.selected-summary-row {
+  align-items: center;
+  background: #f7f9fb;
+  border: 1px solid rgba(21, 25, 31, 0.08);
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto;
+  padding: 12px;
+}
+
+.selected-summary-row div {
+  display: grid;
+  gap: 4px;
+}
+
+.selected-summary-row span {
+  color: #697482;
+  font-size: 0.84rem;
+}
+
+.selected-summary-row button {
+  background: #eef2f6;
+  color: #15191f;
+  min-height: 38px;
+}
+
 .info-list {
   display: grid;
   gap: 10px;
@@ -1399,7 +1460,7 @@ label {
   .top-search {
     border-radius: 12px;
     gap: 6px;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     min-height: 40px;
     padding: 4px 8px;
   }
@@ -1411,8 +1472,36 @@ label {
     width: 100%;
   }
 
+  .search-clear-button {
+    align-items: center;
+    background: transparent;
+    color: #b9c1cc;
+    display: flex;
+    font-size: 1.4rem;
+    height: 30px;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0;
+    width: 30px;
+  }
+
+  .search-clear-button:hover {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+    color: #fff;
+    transform: none;
+  }
+
   .scan-action-button .scan-label {
     display: none;
+  }
+
+  .desktop-profile-icon {
+    display: none;
+  }
+
+  .mobile-menu-icon {
+    display: flex;
   }
 
   .icon-button,
@@ -1467,9 +1556,8 @@ label {
 
   body:has(.modal-backdrop) .panel-actions.has-selection,
   body:has(.scanner-backdrop) .panel-actions.has-selection {
-    filter: brightness(0.6);
-    opacity: 0.28;
     pointer-events: none;
+    z-index: 20;
   }
 
   .metric-card,
@@ -1511,7 +1599,7 @@ label {
   }
 
   #barcode-reader {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
   }
 
   .list-pagination,
@@ -1692,14 +1780,14 @@ label {
 
   .panel-actions.has-selection {
     align-items: center;
-    background: rgba(255, 255, 255, 0.96);
+    background: #fff;
     border: 1px solid rgba(21, 25, 31, 0.1);
     border-radius: 22px;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
     box-shadow: 0 18px 50px rgba(21, 25, 31, 0.18);
     display: grid;
     gap: 8px;
-    grid-template-columns: 48px 1fr 48px;
+    grid-template-columns: 48px 48px 1fr 48px;
     left: 50%;
     max-width: calc(100vw - 28px);
     padding: 12px;
@@ -1728,7 +1816,7 @@ label {
     gap: 8px;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
-    grid-column: 2;
+    grid-column: 3;
     min-width: 0;
   }
 
@@ -1737,13 +1825,14 @@ label {
     font-size: 0.82rem;
     min-height: 48px;
     min-width: 0;
+    margin-left: 0;
     padding: 0 10px;
     white-space: nowrap;
     width: 100%;
   }
 
   .panel-actions.has-selection .danger-icon-button {
-    grid-column: 3;
+    grid-column: 4;
     height: 48px;
     min-height: 48px;
     width: 48px;
@@ -1760,6 +1849,33 @@ label {
     min-height: 48px;
     padding: 0;
     width: 48px;
+  }
+
+  .show-selected-button {
+    align-items: center;
+    background: #eef2f6;
+    color: #15191f;
+    display: flex;
+    grid-column: 2;
+    height: 48px;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0;
+    width: 48px;
+  }
+
+  .show-selected-button:hover {
+    background: #dde4ed;
+  }
+
+  .show-selected-button svg {
+    fill: none;
+    height: 20px;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.4;
+    width: 20px;
   }
 
   .clear-selection-button:hover {
@@ -1938,6 +2054,14 @@ label {
   }
 
   .mobile-location-prefix {
+    display: inline;
+  }
+
+  .desktop-location-text {
+    display: none;
+  }
+
+  .mobile-location-text {
     display: inline;
   }
 

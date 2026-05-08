@@ -131,8 +131,8 @@ const barcodeFormats = [
 ];
 
 const scannerBox = (viewfinderWidth: number, viewfinderHeight: number) => {
-  const edgeSize = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.78);
-  const size = Math.max(160, Math.min(280, edgeSize));
+  const edgeSize = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.92);
+  const size = Math.max(220, Math.min(380, edgeSize));
 
   return { width: size, height: size };
 };
@@ -198,6 +198,7 @@ function App() {
   const [copyItem, setCopyItem] = useState<EquipmentItem | null>(null);
   const [copyFormData, setCopyFormData] = useState<EquipmentFormData>(emptyForm);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedSummaryOpen, setSelectedSummaryOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
@@ -239,6 +240,7 @@ function App() {
     checkoutOpen ||
     checkinOpen ||
     extendOpen ||
+    selectedSummaryOpen ||
     deleteConfirmOpen ||
     Boolean(warningMessage) ||
     customerPromptOpen ||
@@ -326,9 +328,9 @@ function App() {
       .start(
         { facingMode: 'environment' },
         {
-          fps: 12,
+          fps: 15,
           qrbox: scannerBox,
-          aspectRatio: 1.333,
+          aspectRatio: 1,
           disableFlip: false,
         },
         (decodedText) => {
@@ -1546,10 +1548,10 @@ function App() {
 
   const searchPlaceholder =
     activePage === 'customers'
-      ? 'Suche nach Name, Firma, Kontakt, E-Mail, Telefon...'
+      ? 'Kunden suchen...'
       : activePage === 'protocol'
-        ? 'Suche im Protokoll, z.B. FX6 Verleih...'
-        : 'Suche nach Name, Marke, Modell, Seriennummer, EAN...';
+        ? 'Protokoll suchen...'
+        : 'Inventar suchen...';
 
   const topSearchClassName = [
     'top-search',
@@ -1683,6 +1685,16 @@ function App() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder={searchPlaceholder}
             />
+            {search && (
+              <button
+                className="search-clear-button"
+                type="button"
+                onClick={() => setSearch('')}
+                aria-label="Suche leeren"
+              >
+                ×
+              </button>
+            )}
           </div>
 
           {activePage === 'dashboard' && (
@@ -1709,7 +1721,12 @@ function App() {
               onClick={() => setProfileMenuOpen((current) => !current)}
               aria-label="Profilmenü öffnen"
             >
-              <MenuIcon />
+              <span className="desktop-profile-icon">
+                <ProfileIcon />
+              </span>
+              <span className="mobile-menu-icon">
+                <MenuIcon />
+              </span>
             </button>
 
             {profileMenuOpen && (
@@ -1850,6 +1867,14 @@ function App() {
               aria-label="Auswahl aufheben"
             >
               <ClearSelectionIcon />
+            </button>
+            <button
+              className="show-selected-button"
+              type="button"
+              onClick={() => setSelectedSummaryOpen(true)}
+              aria-label="Ausgewählte Artikel anzeigen"
+            >
+              <ListIcon />
             </button>
             <div className="selection-workflows">
               {canCheckout && (
@@ -2056,8 +2081,13 @@ function App() {
                       data-label="Standort / Besitzer"
                       data-status={statusClassName(item.status)}
                     >
-                      <span className="mobile-location-prefix">an </span>
-                      {getCurrentLocation(item)}
+                      <span className="desktop-location-text">
+                        {getCurrentLocation(item)}
+                      </span>
+                      <span className="mobile-location-text">
+                        <span className="mobile-location-prefix">an </span>
+                        {formatMobileCustomerName(getCurrentLocation(item))}
+                      </span>
                     </td>
                     <td data-label="Kaufpreis">
                       {item.purchase_price
@@ -2582,6 +2612,40 @@ function App() {
               >
                 {isDeleting ? 'Löscht...' : 'Löschen'}
               </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {selectedSummaryOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <section className="confirm-modal workflow-modal selected-summary-modal">
+            <div className="form-header">
+              <div>
+                <h2>Ausgewählte Artikel</h2>
+                <p className="modal-subline">{selectedRows.length} ausgewählt</p>
+              </div>
+              <button type="button" onClick={() => setSelectedSummaryOpen(false)}>
+                Schließen
+              </button>
+            </div>
+
+            <div className="selected-summary-list">
+              {selectedRows.map((item) => (
+                <div className="selected-summary-row" key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span>{item.category}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSelected(item.id)}
+                    aria-label={`${item.name} aus Auswahl entfernen`}
+                  >
+                    Entfernen
+                  </button>
+                </div>
+              ))}
             </div>
           </section>
         </div>
@@ -3457,6 +3521,28 @@ function MenuIcon() {
   );
 }
 
+function ProfileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 6h12" />
+      <path d="M8 12h12" />
+      <path d="M8 18h12" />
+      <path d="M4 6h.01" />
+      <path d="M4 12h.01" />
+      <path d="M4 18h.01" />
+    </svg>
+  );
+}
+
 function sanitizeEquipmentPayload(data: EquipmentFormData) {
   return {
     ...data,
@@ -3581,6 +3667,10 @@ function getCurrentLocation(item: EquipmentItem) {
   }
 
   return 'Lager';
+}
+
+function formatMobileCustomerName(value: string) {
+  return value.split(' · ')[0] ?? value;
 }
 
 function getCustomerDisplayName(customer: Customer) {
