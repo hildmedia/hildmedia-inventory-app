@@ -169,6 +169,7 @@ function App() {
   const [isLoginSaving, setIsLoginSaving] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const [activePage, setActivePage] = useState<AppPage>('dashboard');
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -306,6 +307,109 @@ function App() {
       window.scrollTo(0, scrollY);
     };
   }, [hasOpenOverlay]);
+
+  useEffect(() => {
+    if (!profileMenuOpen) {
+      return;
+    }
+
+    function closeProfileMenuOnOutsideClick(event: PointerEvent) {
+      const target = event.target;
+
+      if (
+        target instanceof Node &&
+        profileMenuRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setProfileMenuOpen(false);
+    }
+
+    document.addEventListener('pointerdown', closeProfileMenuOnOutsideClick);
+
+    return () => {
+      document.removeEventListener('pointerdown', closeProfileMenuOnOutsideClick);
+    };
+  }, [profileMenuOpen]);
+
+  useEffect(() => {
+    if (!hasOpenOverlay) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (scanTarget) {
+        setScanTarget(null);
+      } else if (warningMessage) {
+        setWarningMessage('');
+      } else if (customerDeleteConfirm) {
+        setCustomerDeleteConfirm(null);
+      } else if (deleteConfirmOpen) {
+        setDeleteConfirmOpen(false);
+      } else if (selectedSummaryOpen) {
+        setSelectedSummaryOpen(false);
+      } else if (inventoryFiltersOpen) {
+        setInventoryFiltersOpen(false);
+      } else if (customerPromptOpen) {
+        setCustomerPromptOpen(false);
+      } else if (customerCreateOpen) {
+        setCustomerCreateOpen(false);
+        setWorkflowError('');
+      } else if (customerInfo) {
+        setCustomerInfo(null);
+      } else if (customerEdit) {
+        setCustomerEdit(null);
+      } else if (customerLoans) {
+        setCustomerLoans(null);
+      } else if (checkoutOpen) {
+        setCheckoutOpen(false);
+      } else if (checkinOpen) {
+        setCheckinOpen(false);
+      } else if (extendOpen) {
+        setExtendOpen(false);
+      } else if (infoItem) {
+        setInfoItem(null);
+        setInfoLog(null);
+      } else if (editItem) {
+        setEditItem(null);
+      } else if (copyItem) {
+        setCopyItem(null);
+      } else if (createFormOpen) {
+        setCreateFormOpen(false);
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [
+    checkoutOpen,
+    checkinOpen,
+    copyItem,
+    createFormOpen,
+    customerCreateOpen,
+    customerDeleteConfirm,
+    customerEdit,
+    customerInfo,
+    customerLoans,
+    customerPromptOpen,
+    deleteConfirmOpen,
+    editItem,
+    extendOpen,
+    hasOpenOverlay,
+    infoItem,
+    inventoryFiltersOpen,
+    scanTarget,
+    selectedSummaryOpen,
+    warningMessage,
+  ]);
 
   useEffect(() => {
     if (!scanTarget) {
@@ -1225,6 +1329,10 @@ function App() {
     event: React.MouseEvent<HTMLTableRowElement>,
     id: number,
   ) {
+    if (!window.matchMedia('(max-width: 560px)').matches) {
+      return;
+    }
+
     const target = event.target as HTMLElement;
 
     if (target.closest('button, input, select, textarea, a')) {
@@ -1232,18 +1340,6 @@ function App() {
     }
 
     toggleSelected(id);
-  }
-
-  function toggleAllVisible(checked: boolean) {
-    const visiblePageIds = visibleInventoryItems.map((item) => item.id);
-
-    setSelectedIds((current) => {
-      if (checked) {
-        return Array.from(new Set([...current, ...visiblePageIds]));
-      }
-
-      return current.filter((id) => !visiblePageIds.includes(id));
-    });
   }
 
   function changeSort(nextSortKey: SortKey) {
@@ -1714,7 +1810,7 @@ function App() {
             </button>
           )}
 
-          <div className="profile-menu-wrap">
+          <div className="profile-menu-wrap" ref={profileMenuRef}>
             <button
               className="profile-button"
               type="button"
@@ -1873,8 +1969,10 @@ function App() {
               type="button"
               onClick={() => setSelectedSummaryOpen(true)}
               aria-label="Ausgewählte Artikel anzeigen"
+              disabled={selectedIds.length === 0}
             >
               <ListIcon />
+              <span>Auswahl anzeigen</span>
             </button>
             <div className="selection-workflows">
               {canCheckout && (
@@ -1976,21 +2074,20 @@ function App() {
         ) : (
           <div className="table-wrap responsive-table inventory-table">
             <table>
+              <colgroup>
+                <col className="col-select" />
+                <col className="col-name" />
+                <col className="col-category" />
+                <col className="col-brand" />
+                <col className="col-ean" />
+                <col className="col-status" />
+                <col className="col-location" />
+                <col className="col-price" />
+                <col className="col-actions" />
+              </colgroup>
               <thead>
                 <tr>
-                  <th className="select-cell">
-                    <input
-                      type="checkbox"
-                      checked={
-                        visibleInventoryItems.length > 0 &&
-                        visibleInventoryItems.every((item) =>
-                          selectedIds.includes(item.id),
-                        )
-                      }
-                      onChange={(event) => toggleAllVisible(event.target.checked)}
-                      aria-label="Alle sichtbaren Artikel auswählen"
-                    />
-                  </th>
+                  <th className="select-cell" aria-label="Auswahl" />
                   <SortableTh
                     label="Name"
                     sortKeyValue="name"
@@ -2639,7 +2736,12 @@ function App() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => toggleSelected(item.id)}
+                    onClick={() => {
+                      toggleSelected(item.id);
+                      if (selectedRows.length === 1) {
+                        setSelectedSummaryOpen(false);
+                      }
+                    }}
                     aria-label={`${item.name} aus Auswahl entfernen`}
                   >
                     Entfernen

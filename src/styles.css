@@ -22,6 +22,7 @@ input,
 select,
 textarea {
   font: inherit;
+  touch-action: manipulation;
 }
 
 button {
@@ -758,9 +759,37 @@ p {
 }
 
 .selection-count,
-.clear-selection-button,
-.show-selected-button {
+.clear-selection-button {
   display: none;
+}
+
+.show-selected-button {
+  align-items: center;
+  background: #eef2f6;
+  color: #15191f;
+  display: none;
+  gap: 8px;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.panel-actions.has-selection .show-selected-button {
+  display: inline-flex;
+}
+
+.show-selected-button:hover {
+  background: #dde4ed;
+}
+
+.show-selected-button svg {
+  fill: none;
+  height: 18px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.3;
+  width: 18px;
 }
 
 .mobile-location-prefix {
@@ -947,7 +976,44 @@ p {
 table {
   border-collapse: collapse;
   min-width: 920px;
+  table-layout: fixed;
   width: 100%;
+}
+
+.inventory-table .col-select {
+  width: 52px;
+}
+
+.inventory-table .col-name {
+  width: 20%;
+}
+
+.inventory-table .col-category {
+  width: 15%;
+}
+
+.inventory-table .col-brand {
+  width: 10%;
+}
+
+.inventory-table .col-ean {
+  width: 12%;
+}
+
+.inventory-table .col-status {
+  width: 12%;
+}
+
+.inventory-table .col-location {
+  width: 15%;
+}
+
+.inventory-table .col-price {
+  width: 10%;
+}
+
+.inventory-table .col-actions {
+  width: 152px;
 }
 
 th,
@@ -1466,10 +1532,16 @@ label {
   }
 
   .top-search input {
-    font-size: 0.86rem;
+    font-size: 16px;
     min-height: 32px;
     padding: 0;
     width: 100%;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 
   .search-clear-button {
@@ -1572,6 +1644,10 @@ label {
     padding: 18px;
   }
 
+  .inventory-panel {
+    margin-top: 0;
+  }
+
   .protocol-entry,
   .list-pagination,
   .protocol-pagination {
@@ -1648,6 +1724,7 @@ label {
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 12px;
   }
 
   .metric-card {
@@ -1681,10 +1758,12 @@ label {
   .status-overview {
     align-items: stretch;
     display: grid;
-    gap: 12px;
+    gap: 10px;
     grid-column: 1 / -1;
+    grid-auto-rows: 1fr;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    padding: 18px 18px 22px;
+    overflow: visible;
+    padding: 16px 18px 22px;
   }
 
   .status-overview h2 {
@@ -1692,35 +1771,35 @@ label {
   }
 
   .status-line {
-    align-content: center;
+    align-items: center;
     background: #fff;
-    border: 1px solid rgba(21, 25, 31, 0.08);
-    border-bottom: 1px solid rgba(21, 25, 31, 0.08);
+    border: 0;
     border-radius: 16px;
-    display: grid;
-    gap: 8px;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    min-height: 104px;
-    padding: 12px 8px;
+    box-shadow: inset 0 0 0 1px rgba(21, 25, 31, 0.08);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: 72px;
+    justify-content: center;
+    min-height: 0;
+    padding: 8px 6px;
     text-align: center;
   }
 
   .status-line.verfuegbar {
     background: #f3fbf6;
-    border-color: rgba(103, 197, 135, 0.24);
+    box-shadow: inset 0 0 0 1px rgba(103, 197, 135, 0.24);
   }
 
   .status-line.verliehen {
     background: #fffaf0;
-    border-color: rgba(242, 199, 92, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(242, 199, 92, 0.32);
   }
 
   .status-line.in-reparatur {
     background: #f2f7ff;
-    border-color: rgba(111, 169, 247, 0.26);
-    min-height: 104px;
-    padding-bottom: 16px;
+    box-shadow: inset 0 0 0 1px rgba(111, 169, 247, 0.26);
   }
 
   .status-line.overdue-line {
@@ -1735,13 +1814,14 @@ label {
   }
 
   .status-line span:not(.status-dot):not(.warning-mark) {
-    font-size: 0.82rem;
-    font-weight: 800;
-    line-height: 1.2;
+    color: #697482;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.15;
   }
 
   .status-line strong {
-    font-size: 1.9rem;
+    font-size: 1.65rem;
     line-height: 1;
   }
 
@@ -1786,14 +1866,14 @@ label {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
     box-shadow: 0 18px 50px rgba(21, 25, 31, 0.18);
     display: grid;
-    gap: 8px;
-    grid-template-columns: 48px 48px 1fr 48px;
+    gap: 7px;
+    grid-template-columns: 42px 42px 1fr 42px;
     left: 50%;
     max-width: calc(100vw - 28px);
-    padding: 12px;
+    padding: 10px;
     position: fixed;
     transform: translateX(-50%);
-    width: min(420px, calc(100vw - 28px));
+    width: min(400px, calc(100vw - 28px));
     z-index: 90;
   }
 
@@ -1813,7 +1893,7 @@ label {
 
   .panel-actions.has-selection .selection-workflows {
     display: grid;
-    gap: 8px;
+    gap: 7px;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
     grid-column: 3;
@@ -1822,20 +1902,20 @@ label {
 
   .panel-actions.has-selection .workflow-button {
     border-radius: 12px;
-    font-size: 0.82rem;
-    min-height: 48px;
+    font-size: 0.78rem;
+    min-height: 44px;
     min-width: 0;
     margin-left: 0;
-    padding: 0 10px;
+    padding: 0 8px;
     white-space: nowrap;
     width: 100%;
   }
 
   .panel-actions.has-selection .danger-icon-button {
     grid-column: 4;
-    height: 48px;
-    min-height: 48px;
-    width: 48px;
+    height: 42px;
+    min-height: 42px;
+    width: 42px;
   }
 
   .clear-selection-button {
@@ -1844,24 +1924,23 @@ label {
     color: #15191f;
     display: flex;
     grid-column: 1;
-    height: 48px;
+    height: 42px;
     justify-content: center;
-    min-height: 48px;
+    min-height: 42px;
     padding: 0;
-    width: 48px;
+    width: 42px;
   }
 
   .show-selected-button {
-    align-items: center;
-    background: #eef2f6;
-    color: #15191f;
-    display: flex;
     grid-column: 2;
-    height: 48px;
-    justify-content: center;
-    min-height: 48px;
+    height: 42px;
+    min-height: 42px;
     padding: 0;
-    width: 48px;
+    width: 42px;
+  }
+
+  .show-selected-button span {
+    display: none;
   }
 
   .show-selected-button:hover {
